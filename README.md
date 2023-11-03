@@ -1,63 +1,72 @@
-# Terraform AWS EC2 Instance Project
+# Terraform IAM Role Module
 
-This project contains a Terraform script that provisions a simple AWS EC2 instance. It is meant to be a starting point for learning Terraform with AWS.
+This repository contains a Terraform module for creating an AWS IAM Role with a dynamic inline policy.
 
-## Prerequisites
+## Structure
 
-Before you begin, ensure you have the following:
-- An AWS account with appropriate permissions to create EC2 instances.
-- The AWS CLI installed and configured with your credentials.
-- Terraform installed on your local machine.
+- `main.tf`: Main Terraform configuration file for the module.
+- `variables.tf`: Variable definitions for the module.
+- `outputs.tf`: Output definitions that the module will provide after creation.
 
-## Project Structure
+## Usage
 
-- `main.tf` - The main Terraform configuration file defining the AWS provider and the EC2 resource.
-- `outputs.tf` - The output configuration file that displays the EC2 instance ID and public IP after deployment.
+To use this module in your Terraform configuration, follow these steps:
 
-## Getting Started
+1. Create a directory for your Terraform configuration if you haven't already.
+2. Create a `main.tf` file in your root module directory.
+3. Define a module block that calls the IAM role module:
 
-Follow these steps to use the Terraform scripts:
+    ```
+    module "iam_role_example" {
+      source = "./modules/iam_role"
 
-### Step 1: Initialize Terraform
+      role_name = "example_role"
+      assume_role_principal_services = ["ec2.amazonaws.com"]
 
-Run the following command to initialize the Terraform directory, which will download the required providers.
+      policies = [
+        {
+          actions   = ["s3:GetObject", "s3:ListBucket"],
+          effect    = "Allow",
+          resources = ["arn:aws:s3:::example-bucket", "arn:aws:s3:::example-bucket/*"]
+        },
+        # Add more policy blocks if needed
+      ]
+    }
+    ```
 
-    terraform init
+4. Initialize Terraform in your project directory:
 
-### Step 2: Plan the Deployment
+    `terraform init`
 
-Execute the following command to have Terraform perform a dry run that shows which actions will be taken based on the current state of the system and the configuration defined.
+5. Plan the deployment to review the changes that will be applied:
 
-    terraform plan
+    `terraform plan`
 
-Carefully review the proposed actions to ensure they are as expected.
+6. Apply the configuration to create the IAM role:
 
-### Step 3: Apply the Configuration
+    `terraform apply`
 
-To create the actual resources in AWS, run:
+7. To destroy the resources created by Terraform (when needed):
 
-    terraform apply
+    `terraform destroy`
 
-You will be prompted to review the planned actions and confirm the deployment. Type `yes` to proceed.
+## Inputs
 
-### Step 4: Access Outputs
+- `role_name`: The name of the IAM role. (Required)
+- `assume_role_principal_services`: A list of AWS services that are allowed to assume this role. (Defaults to `["ec2.amazonaws.com"]`)
+- `policies`: A list of policy objects that will be dynamically added to the IAM role. Each policy object can contain `actions`, `effect`, and `resources`. (Optional)
 
-After the `apply` command completes successfully, Terraform will output the EC2 instance ID and public IP address. You can use these details to connect to your instance or for further configurations.
+## Outputs
 
-### Step 5: Clean Up
+- `iam_role_arn`: The ARN of the IAM role created.
+- `iam_role_name`: The name of the IAM role created.
 
-When you no longer need the EC2 instance and wish to avoid further charges, destroy the infrastructure with:
+## Notes
 
-    terraform destroy
+- Ensure your AWS provider is correctly configured with the necessary permissions to create IAM roles and policies.
+- The provided `main.tf` example assumes the module is located in a subdirectory called `modules/iam_role`. Adjust the `source` path as necessary.
+- Always review the Terraform plan output before applying to avoid unintended changes to your AWS infrastructure.
 
-You will need to confirm the destruction by typing `yes` when prompted.
+## License
 
-## Important Notes
-
-- Replace the placeholder `ami` in `main.tf` with a valid AMI ID for your AWS region.
-- Always check the AWS pricing details to understand the costs associated with the resources being used. Use the [AWS Pricing Calculator](https://calculator.aws/#/) for an estimate.
-- Ensure that your AWS credentials are securely managed and are never exposed in your Terraform configuration files.
-
-## Costs
-
-Please note that using AWS resources may incur costs. Once you have finished with the deployed resources, ensure you run `terraform destroy` to remove everything and prevent any further charges.
+This module is released under the MIT License. See the [LICENSE](LICENSE) file for details.
